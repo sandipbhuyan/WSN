@@ -64,5 +64,30 @@ class Cluster:
 
         return self.G
 
-    def regenerate_cluster(self):
-        return True
+    def regenerate_cluster(self, g):
+        self.G = g
+        for i in self.dic:
+            self.clus[i] = []
+            for j in range(len(self.dic[i])):
+                if self.dic[i][j] < 4 and G.nodes(i)['mode'] == 'on' :
+                    self.clus[i].append(j)
+
+        cl = 0
+        i = 0
+        while(i<len(self.clus)):
+            temp = cl
+            for j in self.clus[i]:
+                if j not in self.cluster:
+                    self.cluster[j] = cl
+                else:
+                    cl = self.cluster[j]
+            i += 1
+            cl = temp + 1
+
+        for i in self.cluster:
+            if self.cluster[i] not in self.final:
+                self.final[self.cluster[i]] = []
+            self.final[self.cluster[i]].append(i)
+        print(self.final)
+
+        return self.G
