@@ -3,15 +3,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import math as m
+from sklearn.cluster import DBSCAN
 
 class Cluster:
-    cluster = {}
     dic = {}
-    clus = {}
     final = {}
     G = nx.Graph()
+    cluster = []
     ls = []
-    
+
     def __init__(self, size):
         self.size = size
 
@@ -23,7 +23,7 @@ class Cluster:
             self.get_coordinate()
         else:
             self.ls.append(r)
-        return (x,y)
+        return (x, y)
 
     def get_dist(self, x, y):
         return m.sqrt(((x[0] - y[0]) ** 2) + ((x[1] - y[1]) ** 2))
@@ -39,55 +39,35 @@ class Cluster:
                 val = self.get_dist(self.ls[i], self.ls[j])
                 self.dic[i].append(round(val))
 
-        for i in self.dic:
-            self.clus[i] = []
-            for j in range(len(self.dic[i])):
-                if self.dic[i][j] < 4:
-                    self.clus[i].append(j)
+        self.cluster = DBSCAN(eps=4, min_samples=1).fit_predict(np.array(self.ls))
 
-        cl = 0
-        i = 0
-        while(i<len(self.clus)):
-            temp = cl
-            for j in self.clus[i]:
-                if j not in self.cluster:
-                    self.cluster[j] = cl
-                else:
-                    cl = self.cluster[j]
-            i += 1
-            cl = temp + 1
-
-        for i in self.cluster:
-            if self.cluster[i] not in self.final:
-                self.final[self.cluster[i]] = []
-            self.final[self.cluster[i]].append(i)
+        for i in range(max(self.cluster)+1):
+            self.final[i] = []
+            for j in range(len(self.cluster)):
+                if (i == self.cluster[j]):
+                    self.final[i].append(j)
 
         return self.G
 
     def regenerate_cluster(self, g):
         self.G = g
-        for i in self.dic:
-            self.clus[i] = []
-            for j in range(len(self.dic[i])):
-                if self.dic[i][j] < 4 and G.nodes(i)['mode'] == 'on' :
-                    self.clus[i].append(j)
+        temp_ls = []
+        ass_ls = []
 
-        cl = 0
-        i = 0
-        while(i<len(self.clus)):
-            temp = cl
-            for j in self.clus[i]:
-                if j not in self.cluster:
-                    self.cluster[j] = cl
-                else:
-                    cl = self.cluster[j]
-            i += 1
-            cl = temp + 1
+        for i in range(self.size):
+            if self.G.nodes[i]['mode'] == 'on':
+                temp_ls.append(self.ls[i])
+                ass_ls.append(i)
 
-        for i in self.cluster:
-            if self.cluster[i] not in self.final:
-                self.final[self.cluster[i]] = []
-            self.final[self.cluster[i]].append(i)
-        print(self.final)
+        self.cluster = DBSCAN(eps=4, min_samples=1).fit_predict(np.array(temp_ls))
+
+        self.final = {}
+        print(self.cluster)
+        print(ass_ls)
+        for i in range(max(self.cluster) + 1):
+            self.final[i] = []
+            for j in range(len(ass_ls)):
+                if (i == self.cluster[j]):
+                    self.final[i].append(ass_ls[j])
 
         return self.G
