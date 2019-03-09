@@ -1,5 +1,3 @@
-import simpy
-
 class Simulation:
 
     # Constructor
@@ -24,7 +22,7 @@ class Simulation:
                 elif self.G.nodes[pair['dest']['id']]['energy'] < 20:
                     self.turnNodeOff(pair['dest']['id'])
                 print('Regenerating Cluster')
-                self.G = cluster.regenerate_cluster(self.G)
+                self.G = self.cluster.regenerate_cluster(self.G)
                 print('Sorry transmission is not possible because of low energy \n')
                 continue
             else:
