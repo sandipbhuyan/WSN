@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import math as m
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN, k_means
+
 
 class Cluster:
     dic = {}
@@ -11,6 +12,7 @@ class Cluster:
     G = nx.Graph()
     cluster = []
     ls = []
+    centroid = []
 
     def __init__(self, size):
         self.size = size
@@ -40,8 +42,13 @@ class Cluster:
                 self.dic[i].append(round(val))
 
         self.cluster = DBSCAN(eps=4, min_samples=1).fit_predict(np.array(self.ls))
+        n_clus = max(self.cluster) + 1
+        temp = k_means(np.array(self.ls), n_clusters=n_clus)
 
-        for i in range(max(self.cluster)+1):
+        self.centroid = temp[0]
+        self.cluster = temp[1]
+
+        for i in range(max(self.cluster) + 1):
             self.final[i] = []
             for j in range(len(self.cluster)):
                 if (i == self.cluster[j]):
@@ -60,10 +67,12 @@ class Cluster:
                 ass_ls.append(i)
 
         self.cluster = DBSCAN(eps=4, min_samples=1).fit_predict(np.array(temp_ls))
+        n_clus = max(self.cluster) + 1
+        temp = k_means(np.array(self.ls), n_clusters=n_clus)
+        self.cluster = temp[1]
 
+        self.centroid = temp[0]
         self.final = {}
-        print(self.cluster)
-        print(ass_ls)
         for i in range(max(self.cluster) + 1):
             self.final[i] = []
             for j in range(len(ass_ls)):
