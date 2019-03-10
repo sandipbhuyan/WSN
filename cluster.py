@@ -5,7 +5,6 @@ import random
 import math as m
 from sklearn.cluster import DBSCAN, k_means
 
-
 class Cluster:
     dic = {}
     final = {}
@@ -13,6 +12,8 @@ class Cluster:
     cluster = []
     ls = []
     centroid = []
+    cluster_head = []
+    weight = {}
 
     def __init__(self, size):
         self.size = size
@@ -29,6 +30,12 @@ class Cluster:
 
     def get_dist(self, x, y):
         return m.sqrt(((x[0] - y[0]) ** 2) + ((x[1] - y[1]) ** 2))
+
+    def getClusterHead(self, cls, cent):
+        distance = []
+        for i in cls:
+            distance.append(self.get_dist(self.ls[i], cent))
+        return distance.index(min(distance))
 
     def generate_cluster(self):
         for i in range(self.size):
@@ -48,11 +55,18 @@ class Cluster:
         self.centroid = temp[0]
         self.cluster = temp[1]
 
+        for i in range(len(cl.centroid)):
+            for j in range(2):
+                cl.centroid[i][j] = int(round(cl.centroid[i][j]))
+
         for i in range(max(self.cluster) + 1):
             self.final[i] = []
             for j in range(len(self.cluster)):
                 if (i == self.cluster[j]):
                     self.final[i].append(j)
+
+        for i in range(len(self.final)):
+            self.cluster_head.append(self.final[i][self.getClusterHead(self.final[i], self.centroid[i])])
 
         return self.G
 
@@ -73,10 +87,18 @@ class Cluster:
 
         self.centroid = temp[0]
         self.final = {}
+        for i in range(len(cl.centroid)):
+            for j in range(2):
+                cl.centroid[i][j] = int(round(cl.centroid[i][j]))
+
         for i in range(max(self.cluster) + 1):
             self.final[i] = []
             for j in range(len(ass_ls)):
                 if (i == self.cluster[j]):
                     self.final[i].append(ass_ls[j])
+
+        self.cluster_head = []
+        for i in range(len(self.final)):
+            self.cluster_head.append(self.final[i][self.getClusterHead(self.final[i], self.centroid[i])])
 
         return self.G

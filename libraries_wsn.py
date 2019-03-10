@@ -20,35 +20,8 @@ def getCluster(node):
             if (j == node):
                 return i
 
-def getNode(src=50):
-    a = random.randint(1, 24)
-    if (a == src):
-        return getNode(src)
-    return a
-
-def startTransmission():
-    src = getNode()
-    dest = getNode(src)
-
-    return {
-        'src': {
-            'id': src,
-            'cluster': getCluster(src),
-        },
-        'dest': {
-            'id': dest,
-            'cluster': getCluster(dest),
-        },
-        'distance': dic[dest][src],
-        'data_size': 100,
-        'packet_number': 10,
-    }
-
 def latencyCalculator(distance, speed, packetSize, transmissionRate):
     return (distance / speed) + (packetSize / transmissionRate)
-
-def throughputCalculator(latency):
-    return (524288 / latency) / 10000
 
 def setLatency(distance):
     res = []
@@ -56,14 +29,7 @@ def setLatency(distance):
         res.append(latencyCalculator(i * 1000, 100000, 262144, 65536))
     return res
 
-def setThroughput(distance):
-    lat = setLatency(distance)
-    res = []
-    for i in lat:
-        res.append(throughputCalculator(i))
-    return res
-
-def setAttributes(node):
+def setAttributes(node, G):
     G.nodes[node['id']]['energy'] = 100
     G.nodes[node['id']]['dataRecieved'] = 0
     G.nodes[node['id']]['dataSent'] = 0
@@ -80,7 +46,9 @@ def setAttributes(node):
     G.nodes[node['id']]['isTransmitter'] =1 if node['cluster_head']==1 else 0
     G.nodes[node['id']]['mode'] = 'on'
 
-def showData(number):
+    return G
+
+def showData(number, G):
     for i in range(number):
         print("Data for node: " + str(i))
         print("\t id : " + str(i))
@@ -92,3 +60,5 @@ def showData(number):
         print("\t MAC Address : "+ str(G.nodes[i]['mac']))
         print("\t Latency : "+ str(G.nodes[i]['network_latency']))
         print("\t Throughput : "+ str(G.nodes[i]['throughput']))
+
+    return G

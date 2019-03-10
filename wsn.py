@@ -4,7 +4,8 @@ import numpy as np
 import random
 import math as m
 import cluster as c
-import libraries_wsn as lw
+import simulation as sim
+import dijkstra as dij
 
 cl = c.Cluster(25)
 G = cl.generate_cluster()

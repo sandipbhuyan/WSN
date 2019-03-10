@@ -1,6 +1,5 @@
 from collections import defaultdict
 
-
 class Graph:
 
     def minDistance(self, dist, queue):
