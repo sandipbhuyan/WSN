@@ -1,3 +1,5 @@
+import dijkstra as dj
+
 class Simulation:
 
     # Constructor
@@ -8,14 +10,14 @@ class Simulation:
         self.cluster = cluster
         # Start the simulation process
 
-    #         self.proc =  env.process(self.run())
-
     def run(self):
         while True:
             # Execution start
             pair = self.startTransmission()
             print('Transmission will start from %d to node %d ' % (pair['src']['id'], pair['dest']['id']))
-            if self.G.nodes[pair['src']['id']]['energy'] < 20 or self.G.nodes[pair['dest']['id']]['energy'] < 20:
+            if self.G.nodes[pair['src']['id']]['energy'] < 20 or \
+                    self.G.nodes[pair['dest']['id']]['energy'] < 20:
+
                 # Low Power Condition
                 if self.G.nodes[pair['src']['id']]['energy'] < 20:
                     self.turnNodeOff(pair['src']['id'])
@@ -24,13 +26,14 @@ class Simulation:
                 print('\t Sorry transmission is not possible because of low energy')
                 print('\t Regenerating Cluster')
                 self.G = self.cluster.regenerate_cluster(self.G)
-
+                print('\t Cluster has been regenerated')
                 continue
             else:
-                print('\t Data is being transmitted from node %d to node %d ' % (pair['src']['id'], pair['dest']['id']))
+                print('\t Data is being transmitted from node %d to node %d ' % (pair['src']['id'],
+                                                                                 pair['dest']['id']))
                 if pair['src']['cluster'] == pair['dest']['cluster']:
-                    print('\t same Cluster Transmission')
-                    dij = Graph()
+                    print('\n\t Same Cluster Transmission')
+                    dij = dj.Graph()
                     path = dij.dijkstra(self.cluster.weight[pair['src']['cluster']],
                                         self.cluster.final[pair['src']['cluster']].index(pair['src']['id']),
                                         self.cluster.final[pair['src']['cluster']].index(pair['dest']['id']))
@@ -53,14 +56,12 @@ class Simulation:
                         print('\t Transmission end from node %d to node %d' % (src, dest))
                 else:
                     print('\t different Cluster Transmission')
-
                     # Initialize a transmission
 
     def getTransmissionPair(self, path):
         k = []
         for j in range(len(path) - 1):
             k.append([path[j], path[j + 1]])
-
         return k
 
     def processing(self, size):

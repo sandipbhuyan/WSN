@@ -1,7 +1,6 @@
 from collections import defaultdict
 
 class Graph:
-
     def minDistance(self, dist, queue):
         minimum = float("Inf")
         min_index = -1
@@ -20,13 +19,13 @@ class Graph:
         res.append(j)
         return res
 
-    def getPath(self, parent, dest):
+    def printSolution(self, parent, dest):
         res = []
         res = self.printPath(parent, dest, res)
-        print(res)
+
         return res
 
-    def dijkstra(self, graph, src):
+    def dijkstra(self, graph, src, dest):
         row = len(graph)
         col = len(graph[0])
         dist = [float("Inf")] * row
@@ -43,7 +42,5 @@ class Graph:
                     if dist[u] + graph[u][i] < dist[i]:
                         dist[i] = dist[u] + graph[u][i]
                         parent[i] = u
-        return {
-            'dist': dist,
-            'parent': parent,
-        }
+
+        return self.printSolution(parent, dest)
