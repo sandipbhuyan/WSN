@@ -1,4 +1,10 @@
 import dijkstra as dj
+import random
+import networkx as nx
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+import math as m
 
 class Simulation:
 
@@ -14,6 +20,7 @@ class Simulation:
         while True:
             # Execution start
             pair = self.startTransmission()
+            dij = dj.Graph()
             print('Transmission will start from %d to node %d ' % (pair['src']['id'], pair['dest']['id']))
             if self.G.nodes[pair['src']['id']]['energy'] < 20 or \
                     self.G.nodes[pair['dest']['id']]['energy'] < 20:
@@ -33,7 +40,6 @@ class Simulation:
                                                                                  pair['dest']['id']))
                 if pair['src']['cluster'] == pair['dest']['cluster']:
                     print('\n\t Same Cluster Transmission')
-                    dij = dj.Graph()
                     path = dij.dijkstra(self.cluster.weight[pair['src']['cluster']],
                                         self.cluster.final[pair['src']['cluster']].index(pair['src']['id']),
                                         self.cluster.final[pair['src']['cluster']].index(pair['dest']['id']))
@@ -55,7 +61,8 @@ class Simulation:
                             self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.1
                         print('\t Transmission end from node %d to node %d' % (src, dest))
                 else:
-                    print('\t different Cluster Transmission')
+                    print('\n\t different Cluster Transmission')
+                    self.cluster.cluster_head[pair['src']]
                     # Initialize a transmission
 
     def getTransmissionPair(self, path):

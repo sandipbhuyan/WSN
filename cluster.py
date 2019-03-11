@@ -14,9 +14,40 @@ class Cluster:
     centroid = []
     cluster_head = []
     weight = {}
+    chw = []
 
     def __init__(self, size):
         self.size = size
+
+    def getWeight(self, src, dest):
+        return G.get_edge_data(src, dest)['weight']
+
+    def weightMartix(self):
+        weight = {}
+        for i in self.final:
+            weight[i] = []
+            for j in range(len(self.final[i])):
+                res = []
+                for k in range(len(self.final[i])):
+                    if k == j:
+                        res.append(0)
+                    else:
+                        res.append(self.getWeight(j, k))
+                weight[i].append(res)
+        self.weight = weight
+        return
+
+    def clusterHeadWeightMatrix(self):
+        chw = []
+        for i in range(len(self.cluster_head)):
+            res = []
+            for k in range(len(self.cluster_head)):
+                if i == k:
+                    res.append(0)
+                else:
+                    res.append(self.getWeight(self.cluster_head[i], self.cluster_head[k]))
+            chw.append(res)
+        self.chw = chw
 
     def get_coordinate(self):
         x = random.randint(1, 20)
@@ -55,9 +86,9 @@ class Cluster:
         self.centroid = temp[0]
         self.cluster = temp[1]
 
-        for i in range(len(cl.centroid)):
+        for i in range(len(self.centroid)):
             for j in range(2):
-                cl.centroid[i][j] = int(round(cl.centroid[i][j]))
+                self.centroid[i][j] = int(round(self.centroid[i][j]))
 
         for i in range(max(self.cluster) + 1):
             self.final[i] = []
@@ -78,18 +109,24 @@ class Cluster:
         for i in range(self.size):
             if self.G.nodes[i]['mode'] == 'on':
                 temp_ls.append(self.ls[i])
+                print(self.ls[i])
                 ass_ls.append(i)
+
+        if len(temp_ls) == 0:
+            print('All nodes are off')
+            print('can\'t regenerate cluster')
+            return self.G
 
         self.cluster = DBSCAN(eps=4, min_samples=1).fit_predict(np.array(temp_ls))
         n_clus = max(self.cluster) + 1
-        temp = k_means(np.array(self.ls), n_clusters=n_clus)
+        temp = k_means(np.array(temp_ls), n_clusters=n_clus)
         self.cluster = temp[1]
 
         self.centroid = temp[0]
         self.final = {}
-        for i in range(len(cl.centroid)):
+        for i in range(len(self.centroid)):
             for j in range(2):
-                cl.centroid[i][j] = int(round(cl.centroid[i][j]))
+                self.centroid[i][j] = int(round(self.centroid[i][j]))
 
         for i in range(max(self.cluster) + 1):
             self.final[i] = []

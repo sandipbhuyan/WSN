@@ -43,7 +43,7 @@ def setAttributes(node, G):
     G.nodes[node['id']]['mac'] = macGenerator(macList)
     G.nodes[node['id']]['distanceList'] = cl.dic[node['id']]
     G.nodes[node['id']]['isCollector'] = 1 if node['cluster_head']==0 else 0
-    G.nodes[node['id']]['isTransmitter'] =1 if node['cluster_head']==1 else 0
+    G.nodes[node['id']]['isTransmitter'] = 1 if node['cluster_head']==1 else 0
     G.nodes[node['id']]['mode'] = 'on'
 
     return G
@@ -61,4 +61,4 @@ def showData(number, G):
         print("\t Latency : "+ str(G.nodes[i]['network_latency']))
         print("\t Throughput : "+ str(G.nodes[i]['throughput']))
 
-    return G
+    return

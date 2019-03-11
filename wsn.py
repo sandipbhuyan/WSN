@@ -6,6 +6,8 @@ import math as m
 import cluster as c
 import simulation as sim
 import dijkstra as dij
+import warnings
+import simpy
 
 cl = c.Cluster(25)
 G = cl.generate_cluster()
@@ -13,6 +15,7 @@ G = cl.generate_cluster()
 color = []
 r = lambda: random.randint(0, 255)
 
+warnings.filterwarnings('ignore')
 
 def generateColor():
     temp = '#%02X%02X%02X' % (r(), r(), r())
@@ -33,8 +36,6 @@ for i in cl.final:
     nx.draw_networkx_nodes(G, cl.ls, nodelist=cl.final[i], node_color=generateColor())
 nx.draw_networkx_edges(G, cl.ls, edge_color='white')
 color = []
-plt.show()
-
 
 def macGenerator(macList):
     mac = "%02X:%02X:%02X:%02X:%02X:%02X" % (r(), r(), r(), r(), r(), r())
@@ -44,10 +45,8 @@ def macGenerator(macList):
     else:
         return macGenerator(macList)
 
-
 def latencyCalculator(distance):
     return (distance * 10 / 200000) + (10240 / 15 * (2 ** 20))
-
 
 def setLatency(distance):
     res = []
@@ -55,9 +54,7 @@ def setLatency(distance):
         res.append(latencyCalculator(i))
     return res
 
-
 macList = []
-
 
 def setAttributes(node):
     G.nodes[node['id']]['energy'] = 100
@@ -77,13 +74,11 @@ def setAttributes(node):
 
     # Get the cluster of the node
 
-
 def getCluster(node):
     for i in cl.final:
         for j in cl.final[i]:
             if (j == node):
                 return i
-
 
 for i in range(25):
     node = {
@@ -94,16 +89,24 @@ for i in range(25):
     setAttributes(node)
 macList = []
 
+def getWeight(src,dest):
+    return G.get_edge_data(src,dest)['weight']
 
-def showData(number):
-    for i in range(number):
-        print("Data for node: " + str(i))
-        print("\t id : " + str(i))
-        print("\t Data Recieved : " + str(G.nodes[i]['dataRecieved']))
-        print("\t Data Sent : " + str(G.nodes[i]['dataSent']))
-        print("\t Duty Cycle : " + str(G.nodes[i]['duty_cycle']))
-        print("\t Error Rate : " + str(G.nodes[i]['error_rate']))
-        print("\t Cluster : " + str(G.nodes[i]['cluster']))
-        print("\t MAC Address : " + str(G.nodes[i]['mac']))
-        print("\t Latency : " + str(G.nodes[i]['network_latency']))
-        print("\t Mode : " + G.nodes[i]['mode'])
+weight = {}
+
+for i in cl.final:
+    weight[i] = []
+    for j in range(len(cl.final[i])):
+        res = []
+        for k in range(len(cl.final[i])):
+            if k == j:
+                res.append(0)
+            else:
+                res.append(getWeight(j,k))
+        weight[i].append(res)
+
+cl.weight = weight
+
+env = simpy.Environment()
+e = sim.Simulation(env,cl,24,G)
+e.run()
