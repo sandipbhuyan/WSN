@@ -6,6 +6,7 @@ import numpy as np
 import random
 import math as m
 
+
 class Simulation:
 
     # Constructor
@@ -15,16 +16,15 @@ class Simulation:
         self.G = g
         self.cluster = cluster
         # Start the simulation process
+        self.action = env.process(self.run(env))
 
-    def run(self):
+    def run(self, env):
         while True:
             # Execution start
             pair = self.startTransmission()
-            dij = dj.Graph()
+            yield env.timeout(1)
             print('Transmission will start from %d to node %d ' % (pair['src']['id'], pair['dest']['id']))
-            if self.G.nodes[pair['src']['id']]['energy'] < 20 or \
-                    self.G.nodes[pair['dest']['id']]['energy'] < 20:
-
+            if self.G.nodes[pair['src']['id']]['energy'] < 20 or self.G.nodes[pair['dest']['id']]['energy'] < 20:
                 # Low Power Condition
                 if self.G.nodes[pair['src']['id']]['energy'] < 20:
                     self.turnNodeOff(pair['src']['id'])
@@ -33,13 +33,14 @@ class Simulation:
                 print('\t Sorry transmission is not possible because of low energy')
                 print('\t Regenerating Cluster')
                 self.G = self.cluster.regenerate_cluster(self.G)
-                print('\t Cluster has been regenerated')
+                yield env.timeout(2)
                 continue
             else:
-                print('\t Data is being transmitted from node %d to node %d ' % (pair['src']['id'],
-                                                                                 pair['dest']['id']))
+                print('\t Data is being transmitted from node %d to node %d ' % (pair['src']['id'], pair['dest']['id']))
                 if pair['src']['cluster'] == pair['dest']['cluster']:
-                    print('\n\t Same Cluster Transmission')
+                    dij = Graph()
+                    print('\t same Cluster Transmission')
+                    yield env.timeout(1)
                     path = dij.dijkstra(self.cluster.weight[pair['src']['cluster']],
                                         self.cluster.final[pair['src']['cluster']].index(pair['src']['id']),
                                         self.cluster.final[pair['src']['cluster']].index(pair['dest']['id']))
@@ -50,7 +51,7 @@ class Simulation:
                         dest = self.cluster.final[pair['src']['cluster']][i[1]]
                         print('\t Transmission start from node %d to node %d' % (src, dest))
                         self.G.nodes[src]['dataSent'] = pair['data_size']
-                        self.G.nodes[src]['dataSent'] = pair['data_size']
+                        self.G.nodes[dest]['dataReceived'] = pair['data_size']
 
                         self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
                             self.cluster.dic[src][dest], pair['data_size'])
@@ -60,15 +61,87 @@ class Simulation:
                         else:
                             self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.1
                         print('\t Transmission end from node %d to node %d' % (src, dest))
+                        yield env.timeout(1)
                 else:
-                    print('\n\t different Cluster Transmission')
-                    self.cluster.cluster_head[pair['src']]
+                    dij = Graph()
+                    print('\t different Cluster Transmission')
+                    sch = self.cluster.cluster_head[pair['src']['cluster']]
+                    dch = self.cluster.cluster_head[pair['dest']['cluster']]
+                    path = dij.dijkstra(self.cluster.weight[pair['src']['cluster']],
+                                        self.cluster.final[pair['src']['cluster']].index(pair['src']['id']),
+                                        self.cluster.final[pair['src']['cluster']].index(sch))
+                    path = self.getTransmissionPair(path)
+                    print('\t -----')
+                    yield env.timeout(1)
+
+                    for i in path:
+                        src = self.cluster.final[pair['src']['cluster']][i[0]]
+                        dest = self.cluster.final[pair['src']['cluster']][i[1]]
+                        print('\t Transmission start from node %d to node %d' % (src, dest))
+                        self.G.nodes[src]['dataSent'] = pair['data_size']
+                        self.G.nodes[dest]['dataReceived'] = pair['data_size']
+
+                        self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
+                            self.cluster.dic[src][dest], pair['data_size'])
+                        if i[1] == pair['dest']['id']:
+                            self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.5 - self.processing(
+                                pair['data_size'])
+                        else:
+                            self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.1
+                        print('\t Transmission end from node %d to node %d' % (src, dest))
+                        yield env.timeout(1)
                     # Initialize a transmission
+                    print('\t Clusterhead transmisssion')
+                    path = dij.dijkstra(self.cluster.chw, self.cluster.cluster_head.index(sch),
+                                        self.cluster.cluster_head.index(dch))
+                    path = self.getTransmissionPair(path)
+                    yield env.timeout(1)
+
+                    for i in path:
+                        src = self.cluster.cluster_head[i[0]]
+                        dest = self.cluster.cluster_head[i[1]]
+                        print('\t Transmission start from node %d to node %d' % (src, dest))
+                        self.G.nodes[src]['dataSent'] = pair['data_size']
+                        self.G.nodes[dest]['dataReceived'] = pair['data_size']
+
+                        self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
+                            self.cluster.dic[src][dest], pair['data_size'])
+                        if i[1] == pair['dest']['id']:
+                            self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.5 - self.processing(
+                                pair['data_size'])
+                        else:
+                            self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.1
+                        print('\t Transmission end from node %d to node %d' % (src, dest))
+                        yield env.timeout(1)
+                    print('\t Different cluster transmission')
+                    path = dij.dijkstra(self.cluster.weight[pair['dest']['cluster']],
+                                        self.cluster.final[pair['dest']['cluster']].index(dch),
+                                        self.cluster.final[pair['dest']['cluster']].index(pair['dest']['id']))
+                    path = self.getTransmissionPair(path)
+                    yield env.timeout(1)
+
+                    for i in path:
+                        src = self.cluster.final[pair['dest']['cluster']][i[0]]
+                        dest = self.cluster.final[pair['dest']['cluster']][i[1]]
+                        print('\t Transmission start from node %d to node %d' % (src, dest))
+                        self.G.nodes[src]['dataSent'] = pair['data_size']
+                        self.G.nodes[dest]['dataReceived'] = pair['data_size']
+
+                        self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
+                            self.cluster.dic[src][dest], pair['data_size'])
+                        if i[1] == pair['dest']['id']:
+                            self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.5 - self.processing(
+                                pair['data_size'])
+                        else:
+                            self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.1
+                        print('\t Transmission end from node %d to node %d' % (src, dest))
+                        yield env.timeout(1)
 
     def getTransmissionPair(self, path):
         k = []
         for j in range(len(path) - 1):
             k.append([path[j], path[j + 1]])
+
         return k
 
     def processing(self, size):
