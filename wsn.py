@@ -88,25 +88,9 @@ for i in range(25):
     }
     setAttributes(node)
 macList = []
-
-def getWeight(src,dest):
-    return G.get_edge_data(src,dest)['weight']
-
-weight = {}
-
-for i in cl.final:
-    weight[i] = []
-    for j in range(len(cl.final[i])):
-        res = []
-        for k in range(len(cl.final[i])):
-            if k == j:
-                res.append(0)
-            else:
-                res.append(getWeight(j,k))
-        weight[i].append(res)
-
-cl.weight = weight
+cl.clusterHeadWeightMatrix()
+cl.weightMartix()
 
 env = simpy.Environment()
 e = sim.Simulation(env,cl,24,G)
-e.run()
+env.run(until=200)

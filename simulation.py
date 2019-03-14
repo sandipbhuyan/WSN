@@ -38,7 +38,7 @@ class Simulation:
             else:
                 print('\t Data is being transmitted from node %d to node %d ' % (pair['src']['id'], pair['dest']['id']))
                 if pair['src']['cluster'] == pair['dest']['cluster']:
-                    dij = Graph()
+                    dij = dj.Graph()
                     print('\t same Cluster Transmission')
                     yield env.timeout(1)
                     path = dij.dijkstra(self.cluster.weight[pair['src']['cluster']],
@@ -63,7 +63,7 @@ class Simulation:
                         print('\t Transmission end from node %d to node %d' % (src, dest))
                         yield env.timeout(1)
                 else:
-                    dij = Graph()
+                    dij = dj.Graph()
                     print('\t different Cluster Transmission')
                     sch = self.cluster.cluster_head[pair['src']['cluster']]
                     dch = self.cluster.cluster_head[pair['dest']['cluster']]
