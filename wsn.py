@@ -55,7 +55,6 @@ def setLatency(distance):
     return res
 
 macList = []
-
 def setAttributes(node):
     G.nodes[node['id']]['energy'] = 100
     G.nodes[node['id']]['dataRecieved'] = 0
@@ -73,7 +72,6 @@ def setAttributes(node):
     G.nodes[node['id']]['mode'] = 'on'
 
     # Get the cluster of the node
-
 def getCluster(node):
     for i in cl.final:
         for j in cl.final[i]:
@@ -84,10 +82,24 @@ for i in range(25):
     node = {
         'id': i,
         'cluster': getCluster(i),
-        'cluster_head': 0,
+        'cluster_head': 1 if i in cl.cluster_head else 0,
     }
     setAttributes(node)
+
 macList = []
+def showData(number):
+    for i in range(number):
+        print("Data for node: " + str(i))
+        print("\t id : " + str(i))
+        print("\t Data Recieved : "+ str(G.nodes[i]['dataRecieved']))
+        print("\t Data Sent : "+ str(G.nodes[i]['dataSent']))
+        print("\t Duty Cycle : "+ str(G.nodes[i]['duty_cycle']))
+        print("\t Error Rate : "+ str(G.nodes[i]['error_rate']))
+        print("\t Cluster : "+ str(G.nodes[i]['cluster']))
+        print("\t MAC Address : "+ str(G.nodes[i]['mac']))
+        print("\t Latency : "+ str(G.nodes[i]['network_latency']))
+        print("\t Mode : "+ G.nodes[i]['mode'])
+        print("\t Cluster head  : "+ G.nodes[i]['mode'])
 cl.clusterHeadWeightMatrix()
 cl.weightMartix()
 

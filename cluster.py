@@ -20,7 +20,7 @@ class Cluster:
         self.size = size
 
     def getWeight(self, src, dest):
-        return G.get_edge_data(src, dest)['weight']
+        return self.G.get_edge_data(src, dest)['weight']
 
     def weightMartix(self):
         weight = {}

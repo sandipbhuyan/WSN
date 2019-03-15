@@ -1,11 +1,10 @@
-import dijkstra as dj
-import random
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 import random
 import math as m
-
+import dijkstra as dijkstra
+from sklearn.cluster import DBSCAN, k_means
 
 class Simulation:
 
@@ -33,12 +32,16 @@ class Simulation:
                 print('\t Sorry transmission is not possible because of low energy')
                 print('\t Regenerating Cluster')
                 self.G = self.cluster.regenerate_cluster(self.G)
+                self.cluster.weight = {}
+                self.cluster.chw = []
+                self.cluster.clusterHeadWeightMatrix()
+                self.cluster.weightMartix()
                 yield env.timeout(2)
                 continue
             else:
                 print('\t Data is being transmitted from node %d to node %d ' % (pair['src']['id'], pair['dest']['id']))
                 if pair['src']['cluster'] == pair['dest']['cluster']:
-                    dij = dj.Graph()
+                    dij = dijkstra.Graph()
                     print('\t same Cluster Transmission')
                     yield env.timeout(1)
                     path = dij.dijkstra(self.cluster.weight[pair['src']['cluster']],
@@ -63,7 +66,7 @@ class Simulation:
                         print('\t Transmission end from node %d to node %d' % (src, dest))
                         yield env.timeout(1)
                 else:
-                    dij = dj.Graph()
+                    dij = dijkstra.Graph()
                     print('\t different Cluster Transmission')
                     sch = self.cluster.cluster_head[pair['src']['cluster']]
                     dch = self.cluster.cluster_head[pair['dest']['cluster']]
