@@ -5,6 +5,7 @@ import random
 import math as m
 from sklearn.cluster import DBSCAN, k_means
 
+
 class Cluster:
     dic = {}
     final = {}
@@ -20,7 +21,7 @@ class Cluster:
         self.size = size
 
     def getWeight(self, src, dest):
-        return self.G.get_edge_data(src, dest)['weight']
+        return G.get_edge_data(src, dest)['weight']
 
     def weightMartix(self):
         weight = {}
@@ -49,9 +50,23 @@ class Cluster:
             chw.append(res)
         self.chw = chw
 
+    def calculateWeight(self, dis, lat, e1, e2):
+        return m.ceil((10 ** 6) * ((dis * lat) / (e1 * e2)))
+
+    def setWeightOfEdges(self):
+        for i in range(0, self.size, 1):
+            for j in range(i, self.size, 1):
+                if (i != j):
+                    distance = self.dic[i][j]
+                    latency = self.G.nodes[i]['network_latency'][j]
+                    E1 = self.G.nodes[i]['energy']
+                    E2 = self.G.nodes[j]['energy']
+                    self.G.get_edge_data(i, j)['weight'] = self.calculateWeight(distance, latency, E1, E2)
+        return self.G
+
     def get_coordinate(self):
-        x = random.randint(1, 20)
-        y = random.randint(1, 20)
+        x = random.randint(1, 30)
+        y = random.randint(1, 30)
         r = [x, y]
         if r in self.ls:
             self.get_coordinate()
@@ -109,7 +124,6 @@ class Cluster:
         for i in range(self.size):
             if self.G.nodes[i]['mode'] == 'on':
                 temp_ls.append(self.ls[i])
-                print(self.ls[i])
                 ass_ls.append(i)
 
         if len(temp_ls) == 0:

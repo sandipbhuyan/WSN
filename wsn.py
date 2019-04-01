@@ -9,7 +9,7 @@ import dijkstra as dij
 import warnings
 import simpy
 
-cl = c.Cluster(25)
+cl = c.Cluster(50 )
 G = cl.generate_cluster()
 
 color = []
@@ -100,6 +100,8 @@ def showData(number):
         print("\t Latency : "+ str(G.nodes[i]['network_latency']))
         print("\t Mode : "+ G.nodes[i]['mode'])
         print("\t Cluster head  : "+ G.nodes[i]['mode'])
+
+G = cl.setWeightOfEdges()
 cl.clusterHeadWeightMatrix()
 cl.weightMartix()
 

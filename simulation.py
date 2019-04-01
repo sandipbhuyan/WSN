@@ -34,14 +34,14 @@ class Simulation:
                 self.G = self.cluster.regenerate_cluster(self.G)
                 self.cluster.weight = {}
                 self.cluster.chw = []
-                self.cluster.clusterHeadWeightMatrix()
                 self.cluster.weightMartix()
+                self.cluster.clusterHeadWeightMatrix()
                 yield env.timeout(2)
                 continue
             else:
                 print('\t Data is being transmitted from node %d to node %d ' % (pair['src']['id'], pair['dest']['id']))
                 if pair['src']['cluster'] == pair['dest']['cluster']:
-                    dij = dijkstra.Graph()
+                    dij = Graph()
                     print('\t same Cluster Transmission')
                     yield env.timeout(1)
                     path = dij.dijkstra(self.cluster.weight[pair['src']['cluster']],
@@ -52,6 +52,7 @@ class Simulation:
                     for i in path:
                         src = self.cluster.final[pair['src']['cluster']][i[0]]
                         dest = self.cluster.final[pair['src']['cluster']][i[1]]
+                        print('\t changing weight from %d to %d' % (src, dest))
                         print('\t Transmission start from node %d to node %d' % (src, dest))
                         self.G.nodes[src]['dataSent'] = pair['data_size']
                         self.G.nodes[dest]['dataReceived'] = pair['data_size']
@@ -66,7 +67,7 @@ class Simulation:
                         print('\t Transmission end from node %d to node %d' % (src, dest))
                         yield env.timeout(1)
                 else:
-                    dij = dijkstra.Graph()
+                    dij = Graph()
                     print('\t different Cluster Transmission')
                     sch = self.cluster.cluster_head[pair['src']['cluster']]
                     dch = self.cluster.cluster_head[pair['dest']['cluster']]
@@ -83,7 +84,7 @@ class Simulation:
                         print('\t Transmission start from node %d to node %d' % (src, dest))
                         self.G.nodes[src]['dataSent'] = pair['data_size']
                         self.G.nodes[dest]['dataReceived'] = pair['data_size']
-
+                        print('\t changing weight from %d to %d' % (src, dest))
                         self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
                             self.cluster.dic[src][dest], pair['data_size'])
                         if i[1] == pair['dest']['id']:
@@ -106,7 +107,7 @@ class Simulation:
                         print('\t Transmission start from node %d to node %d' % (src, dest))
                         self.G.nodes[src]['dataSent'] = pair['data_size']
                         self.G.nodes[dest]['dataReceived'] = pair['data_size']
-
+                        print('\t changing weight from %d to %d' % (src, dest))
                         self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
                             self.cluster.dic[src][dest], pair['data_size'])
                         if i[1] == pair['dest']['id']:
@@ -129,7 +130,7 @@ class Simulation:
                         print('\t Transmission start from node %d to node %d' % (src, dest))
                         self.G.nodes[src]['dataSent'] = pair['data_size']
                         self.G.nodes[dest]['dataReceived'] = pair['data_size']
-
+                        print('\t changing weight from %d to %d' % (src, dest))
                         self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
                             self.cluster.dic[src][dest], pair['data_size'])
                         if i[1] == pair['dest']['id']:
