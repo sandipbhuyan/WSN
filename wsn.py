@@ -9,7 +9,7 @@ import dijkstra as dij
 import warnings
 import simpy
 
-cl = c.Cluster(50 )
+cl = c.Cluster(100)
 G = cl.generate_cluster()
 
 color = []
@@ -71,7 +71,7 @@ def setAttributes(node):
     G.nodes[node['id']]['isTransmitter'] = 1 if node['cluster_head'] == 1 else 0
     G.nodes[node['id']]['mode'] = 'on'
 
-    # Get the cluster of the node
+# Get the cluster of the node
 def getCluster(node):
     for i in cl.final:
         for j in cl.final[i]:
@@ -106,5 +106,5 @@ cl.clusterHeadWeightMatrix()
 cl.weightMartix()
 
 env = simpy.Environment()
-e = sim.Simulation(env,cl,24,G)
-env.run(until=200)
+e = sim.Simulation(env,cl,100,G)
+env.run()

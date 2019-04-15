@@ -65,8 +65,8 @@ class Cluster:
         return self.G
 
     def get_coordinate(self):
-        x = random.randint(1, 30)
-        y = random.randint(1, 30)
+        x = random.randint(1, 40)
+        y = random.randint(1, 40)
         r = [x, y]
         if r in self.ls:
             self.get_coordinate()

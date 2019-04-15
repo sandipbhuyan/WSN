@@ -5,8 +5,12 @@ import random
 import math as m
 import dijkstra as dijkstra
 from sklearn.cluster import DBSCAN, k_means
+import pickle
 
 class Simulation:
+    off_nodes = {}
+    f = open('weight.pkl', 'rb')
+    ml = pickle.load(f)
 
     # Constructor
     def __init__(self, env, cluster, size, g):
@@ -34,8 +38,8 @@ class Simulation:
                 self.G = self.cluster.regenerate_cluster(self.G)
                 self.cluster.weight = {}
                 self.cluster.chw = []
-                self.cluster.weightMartix()
                 self.cluster.clusterHeadWeightMatrix()
+                self.cluster.weightMartix()
                 yield env.timeout(2)
                 continue
             else:
@@ -52,19 +56,32 @@ class Simulation:
                     for i in path:
                         src = self.cluster.final[pair['src']['cluster']][i[0]]
                         dest = self.cluster.final[pair['src']['cluster']][i[1]]
-                        print('\t changing weight from %d to %d' % (src, dest))
                         print('\t Transmission start from node %d to node %d' % (src, dest))
                         self.G.nodes[src]['dataSent'] = pair['data_size']
                         self.G.nodes[dest]['dataReceived'] = pair['data_size']
-
                         self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
                             self.cluster.dic[src][dest], pair['data_size'])
+                        pred = {
+                            'latency': self.G.nodes[src]['network_latency'][dest],
+                            'E1': self.G.nodes[src]['energy'],
+                            'E1_consume': self.energyConsume(self.cluster.dic[src][dest], pair['data_size']),
+                            'E2': 0,
+                            'E2_consume': 0
+                        }
                         if i[1] == pair['dest']['id']:
                             self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.5 - self.processing(
                                 pair['data_size'])
+                            pred['E2_consume'] = 0.5 + self.processing(pair['data_size'])
                         else:
                             self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.1
+                            pred['E2_consume'] = 0.1
                         print('\t Transmission end from node %d to node %d' % (src, dest))
+                        pair['E2'] = self.G.nodes[dest]['energy']
+                        self.G.get_edge_data(src, dest)['weight'] = self.getWeight(pred)
+                        print('\t Chaning weight from node %d to %d' % (src, dest))
+                        self.cluster.G = self.G
+                        self.cluster.weight = {}
+                        self.cluster.weightMartix()
                         yield env.timeout(1)
                 else:
                     dij = Graph()
@@ -84,15 +101,29 @@ class Simulation:
                         print('\t Transmission start from node %d to node %d' % (src, dest))
                         self.G.nodes[src]['dataSent'] = pair['data_size']
                         self.G.nodes[dest]['dataReceived'] = pair['data_size']
-                        print('\t changing weight from %d to %d' % (src, dest))
                         self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
                             self.cluster.dic[src][dest], pair['data_size'])
+                        pred = {
+                            'latency': self.G.nodes[src]['network_latency'][dest],
+                            'E1': self.G.nodes[src]['energy'],
+                            'E1_consume': self.energyConsume(self.cluster.dic[src][dest], pair['data_size']),
+                            'E2': 0,
+                            'E2_consume': 0
+                        }
                         if i[1] == pair['dest']['id']:
                             self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.5 - self.processing(
                                 pair['data_size'])
+                            pred['E2_consume'] = 0.5 + self.processing(pair['data_size'])
                         else:
                             self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.1
+                            pred['E2_consume'] = 0.1
                         print('\t Transmission end from node %d to node %d' % (src, dest))
+                        pair['E2'] = self.G.nodes[dest]['energy']
+                        self.G.get_edge_data(src, dest)['weight'] = self.getWeight(pred)
+                        print('\t Chaning weight from node %d to %d' % (src, dest))
+                        self.cluster.G = self.G
+                        self.cluster.weight = {}
+                        self.cluster.weightMartix()
                         yield env.timeout(1)
                     # Initialize a transmission
                     print('\t Clusterhead transmisssion')
@@ -107,15 +138,29 @@ class Simulation:
                         print('\t Transmission start from node %d to node %d' % (src, dest))
                         self.G.nodes[src]['dataSent'] = pair['data_size']
                         self.G.nodes[dest]['dataReceived'] = pair['data_size']
-                        print('\t changing weight from %d to %d' % (src, dest))
                         self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
                             self.cluster.dic[src][dest], pair['data_size'])
+                        pred = {
+                            'latency': self.G.nodes[src]['network_latency'][dest],
+                            'E1': self.G.nodes[src]['energy'],
+                            'E1_consume': self.energyConsume(self.cluster.dic[src][dest], pair['data_size']),
+                            'E2': 0,
+                            'E2_consume': 0
+                        }
                         if i[1] == pair['dest']['id']:
+                            pred['E2_consume'] = 0.5 + self.processing(pair['data_size'])
                             self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.5 - self.processing(
                                 pair['data_size'])
                         else:
                             self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.1
+                            pred['E2_consume'] = 0.1
+                        pair['E2'] = self.G.nodes[dest]['energy']
                         print('\t Transmission end from node %d to node %d' % (src, dest))
+                        self.G.get_edge_data(src, dest)['weight'] = self.getWeight(pred)
+                        print('\t Chaning weight from node %d to %d' % (src, dest))
+                        self.cluster.G = self.G
+                        self.cluster.chw = []
+                        self.cluster.clusterHeadWeightMatrix()
                         yield env.timeout(1)
                     print('\t Different cluster transmission')
                     path = dij.dijkstra(self.cluster.weight[pair['dest']['cluster']],
@@ -130,16 +175,31 @@ class Simulation:
                         print('\t Transmission start from node %d to node %d' % (src, dest))
                         self.G.nodes[src]['dataSent'] = pair['data_size']
                         self.G.nodes[dest]['dataReceived'] = pair['data_size']
-                        print('\t changing weight from %d to %d' % (src, dest))
                         self.G.nodes[src]['energy'] = self.G.nodes[src]['energy'] - self.energyConsume(
                             self.cluster.dic[src][dest], pair['data_size'])
+                        pred = {
+                            'latency': self.G.nodes[src]['network_latency'][dest],
+                            'E1': self.G.nodes[src]['energy'],
+                            'E1_consume': self.energyConsume(self.cluster.dic[src][dest], pair['data_size']),
+                            'E2': 0,
+                            'E2_consume': 0
+                        }
                         if i[1] == pair['dest']['id']:
                             self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.5 - self.processing(
                                 pair['data_size'])
+                            pred['E2_consume'] = 0.5 + self.processing(pair['data_size'])
                         else:
                             self.G.nodes[dest]['energy'] = self.G.nodes[dest]['energy'] - 0.1
+                            pred['E2_consume'] = 0.1
                         print('\t Transmission end from node %d to node %d' % (src, dest))
+                        pair['E2'] = self.G.nodes[dest]['energy']
+                        self.G.get_edge_data(src, dest)['weight'] = self.getWeight(pred)
+                        print('\t Chaning weight from node %d to %d' % (src, dest))
+                        self.cluster.G = self.G
+                        self.cluster.weight = {}
+                        self.cluster.weightMartix()
                         yield env.timeout(1)
+                    self.offNodeManeger()
 
     def getTransmissionPair(self, path):
         k = []
@@ -147,6 +207,9 @@ class Simulation:
             k.append([path[j], path[j + 1]])
 
         return k
+
+    def getWeight(self, pred):
+        return m.ceil(self.ml.predict(pd.DataFrame(pred, index=[0]))[0])
 
     def processing(self, size):
         return size * 0.001
@@ -172,6 +235,32 @@ class Simulation:
     # Turn off node
     def turnNodeOff(self, id):
         self.G.nodes[id]['mode'] = 'off'
+        if id not in self.off_nodes:
+            self.off_nodes[id] = 0
+
+    def offNodeManeger(self):
+        print("List of node in sleeping mode")
+        print(" node : Sleep_time")
+        for i in self.off_nodes:
+            self.off_nodes[i] += 5
+            print(' %d       %d' % (i, self.off_nodes[i]))
+        temp = []
+        j = 0
+        for i in self.off_nodes:
+            if self.off_nodes[i] == 200:
+                self.G.nodes[i]['mode'] = 'on'
+                self.G.nodes[i]['energy'] = 100
+                print('Adding node %d to the network and cluster regeneration' % i)
+                self.G = self.cluster.regenerate_cluster(self.G)
+
+                self.cluster.weight = {}
+                self.cluster.chw = []
+                self.cluster.clusterHeadWeightMatrix()
+                self.cluster.weightMartix()
+                temp.append(i)
+
+        for i in temp:
+            del self.off_nodes[i]
 
     # Get the cluster of the node
     def getCluster(self, node):
